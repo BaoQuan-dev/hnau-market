@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}浏览历史 - 河农大闲置交易平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+.item-card-wrapper {
+    position: relative;
+}
+.item-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.item-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(46, 125, 50, 0.15);
+}
+.item-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: #f0f0f0;
+}
+.item-card .info {
+    padding: 16px;
+}
+.item-card .title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.item-card .price {
+    font-size: 22px;
+    color: #F9A825;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.item-card .meta {
+    font-size: 12px;
+    color: #999;
+    margin-top: 8px;
+}
+.item-card .browse-time {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+.sold-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+.sold-text {
+    background: #ff4d4f;
+    color: white;
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+.condition-badge {
+    position: absolute;
+    top: 40px;
+    left: 10px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+.condition-全新 { background: #2E7D32; color: white; }
+.condition-99新 { background: #7CB342; color: white; }
+.condition-95新 { background: #F9A825; color: white; }
+.condition-9成新 { background: #FF9800; color: white; }
+.condition-8成新 { background: #E91E63; color: white; }
+@media (max-width: 768px) {
+    .items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #2E7D32;">🕐 浏览历史</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="color: #999;">共 {{ history|length }} 条记录</span>
+            {% if history %}
+            <button onclick="clearHistory()" class="btn btn-secondary" style="padding: 8px 16px;">清空历史</button>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if history %}
+    <div class="items-grid">
+        {% for h in history %}
+        <div class="item-card-wrapper">
+            <span class="browse-time">🕐 {{ h.created_at[:10] }}</span>
+            {% if h.condition %}
+            <span class="condition-badge condition-{{ h.condition }}">{{ h.condition }}</span>
+            {% endif %}
+            {% if h.status == '已售' %}
+            <div style="position: relative;">
+                <a href="{{ url_for('item_detail', item_id=h.item_id) }}" style="text-decoration: none;">
+                    <div class="item-card">
+                        {% if h.image_url %}
+                            <img src="{{ h.image_url }}" alt="{{ h.title }}" 
+                                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22>暂无图片</text></svg>'">
+                        {% else %}
+                            <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22>暂无图片</text></svg>" alt="暂无图片">
+                        {% endif %}
+                        <div class="info">
+                            <div class="title">{{ h.title }}</div>
+                            <div class="price">¥{{ h.price }}</div>
+                            <div class="meta">
+                                <span>📍 {{ h.category }}</span>
+                                <span>👤 {{ h.username }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="sold-overlay">
+                    <span class="sold-text">已售出</span>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('item_detail', item_id=h.item_id) }}" style="text-decoration: none;">
+                <div class="item-card">
+                    {% if h.image_url %}
+                        <img src="{{ h.image_url }}" alt="{{ h.title }}" 
+                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22>暂无图片</text></svg>'">
+                    {% else %}
+                        <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22>暂无图片</text></svg>" alt="暂无图片">
+                    {% endif %}
+                    <div class="info">
+                        <div class="title">{{ h.title }}</div>
+                        <div class="price">¥{{ h.price }}</div>
+                        <div class="meta">
+                            <span>📍 {{ h.category }}</span>
+                            <span>👤 {{ h.username }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">📖</div>
+        <p style="color: #999; font-size: 16px;">还没有浏览记录</p>
+        <p style="color: #bbb; font-size: 14px; margin-top: 8px;">去首页看看有什么宝贝吧</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary" style="margin-top: 20px;">去逛逛</a>
+    </div>
+    {% endif %}
+</div>
+
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('profile') }}" class="btn btn-secondary">← 返回个人中心</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function clearHistory() {
+    if (!confirm('确定要清空所有浏览记录吗？')) return;
+    
+    fetch(`/my/history/clear`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.code === 200) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('操作失败，请重试');
+    });
+}
+</script>
+{% endblock %}

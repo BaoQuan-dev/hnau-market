@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}学生认证 - 河农大闲置交易平台{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 40px auto;">
+    <h2 style="text-align: center; margin-bottom: 24px; color: #1890ff;">🎓 河南农业大学学生认证</h2>
+    
+    {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    
+    <!-- 认证状态提示 -->
+    <div style="margin-bottom: 24px; padding: 16px; background: #f9f9f9; border-radius: 8px; text-align: center;">
+        <p style="margin-bottom: 8px;">
+            当前认证状态：
+            <span class="status-tag status-{{ user.auth_status }}" style="font-size: 14px;">{{ user.auth_status }}</span>
+        </p>
+        
+        {% if user.auth_status == '待审核' %}
+            <p style="color: #faad14; font-size: 14px; margin-top: 12px;">
+                ⏳ 您的认证申请已提交，请等待管理员审核
+            </p>
+        {% elif user.auth_status == '已认证' %}
+            <p style="color: #52c41a; font-size: 14px; margin-top: 12px;">
+                ✅ 您已完成学生认证，可以发布闲置物品了
+            </p>
+            <a href="{{ url_for('publish') }}" class="btn btn-primary" style="margin-top: 12px;">发布闲置</a>
+        {% endif %}
+    </div>
+    
+    {% if user.auth_status != '已认证' %}
+    <form method="POST" action="{{ url_for('student_auth') }}">
+        <div class="form-group">
+            <label>学号 *</label>
+            <input type="text" name="student_id" required placeholder="请输入您的学号" 
+                   value="{{ user.student_id or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label>所属学院 *</label>
+            <select name="college" required>
+                <option value="">请选择学院</option>
+                <option value="农学院" {% if user.college == '农学院' %}selected{% endif %}>农学院</option>
+                <option value="林学院" {% if user.college == '林学院' %}selected{% endif %}>林学院</option>
+                <option value="园艺学院" {% if user.college == '园艺学院' %}selected{% endif %}>园艺学院</option>
+                <option value="植物保护学院" {% if user.college == '植物保护学院' %}selected{% endif %}>植物保护学院</option>
+                <option value="动物科技学院" {% if user.college == '动物科技学院' %}selected{% endif %}>动物科技学院</option>
+                <option value="食品科学技术学院" {% if user.college == '食品科学技术学院' %}selected{% endif %}>食品科学技术学院</option>
+                <option value="信息与管理科学学院" {% if user.college == '信息与管理科学学院' %}selected{% endif %}>信息与管理科学学院</option>
+                <option value="软件学院" {% if user.college == '软件学院' %}selected{% endif %}>软件学院</option>
+                <option value="机电工程学院" {% if user.college == '机电工程学院' %}selected{% endif %}>机电工程学院</option>
+                <option value="生命科学学院" {% if user.college == '生命科学学院' %}selected{% endif %}>生命科学学院</option>
+                <option value="经济与管理学院" {% if user.college == '经济与管理学院' %}selected{% endif %}>经济与管理学院</option>
+                <option value="文法学院" {% if user.college == '文法学院' %}selected{% endif %}>文法学院</option>
+                <option value="理学院" {% if user.college == '理学院' %}selected{% endif %}>理学院</option>
+                <option value="外国语学院" {% if user.college == '外国语学院' %}selected{% endif %}>外国语学院</option>
+                <option value="体育学院" {% if user.college == '体育学院' %}selected{% endif %}>体育学院</option>
+                <option value="其他" {% if user.college == '其他' %}selected{% endif %}>其他</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>学生证图片链接 *</label>
+            <input type="url" name="student_card_url" required 
+                   placeholder="请上传学生证图片到图床后粘贴链接"
+                   value="{{ user.student_card_url or '' }}">
+            <p style="font-size: 12px; color: #999; margin-top: 8px;">
+                💡 上传方式：将学生证图片上传至 
+                <a href="https://sm.ms" target="_blank" style="color: #1890ff;">sm.ms图床</a>、
+                <a href="https://imgur.com" target="_blank" style="color: #1890ff;">Imgur</a> 
+                等图床网站，获取链接后粘贴到此处
+            </p>
+        </div>
+        
+        <div style="background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+            <p style="font-size: 13px; color: #d48806;">
+                ⚠️ 注意事项：<br>
+                1. 学生证图片需清晰可见，包含姓名、学号、学院信息<br>
+                2. 认证审核一般在1-3个工作日内完成<br>
+                3. 请确保信息真实有效，虚假信息将导致账号被封禁
+            </p>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+            {% if user.auth_status == '待审核' %}
+                更新认证信息
+            {% else %}
+                提交认证申请
+            {% endif %}
+        </button>
+    </form>
+    {% endif %}
+    
+    <!-- 如果已提交认证，显示认证信息 -->
+    {% if user.student_id %}
+    <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #f0f0f0;">
+        <h4 style="margin-bottom: 16px;">已提交的认证信息</h4>
+        <div style="display: grid; gap: 12px;">
+            <p><strong>学号：</strong>{{ user.student_id }}</p>
+            <p><strong>学院：</strong>{{ user.college }}</p>
+            {% if user.student_card_url %}
+            <div>
+                <strong>学生证图片：</strong><br>
+                <img src="{{ user.student_card_url }}" style="max-width: 300px; margin-top: 8px; border-radius: 4px; border: 1px solid #f0f0f0;"
+                     onerror="this.parentElement.innerHTML='<span style=\'color:#ff4d4f\'>图片加载失败</span>'">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

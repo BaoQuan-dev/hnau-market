@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}用户管理 - 河农大闲置交易平台{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 24px;">👥 用户管理</h2>
+
+<div style="margin-bottom: 24px;">
+    <a href="{{ url_for('admin') }}" class="btn btn-secondary">← 返回后台首页</a>
+</div>
+
+<div class="card">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #fafafa;">
+                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0;">ID</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0;">用户名</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0;">学号</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0;">学院</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0;">认证状态</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0;">角色</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0;">注册时间</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">{{ user.id }}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">{{ user.username }}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">{{ user.student_id or '-' }}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">{{ user.college or '-' }}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">
+                    <span class="status-tag status-{{ user.auth_status }}">{{ user.auth_status }}</span>
+                </td>
+                <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">
+                    {% if user.is_admin == 1 %}
+                        <span style="color: #faad14;">管理员</span>
+                    {% else %}
+                        <span style="color: #666;">普通用户</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">{{ user.created_at[:10] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+@media (max-width: 768px) {
+    table { display: block; overflow-x: auto; }
+}
+</style>
+{% endblock %}

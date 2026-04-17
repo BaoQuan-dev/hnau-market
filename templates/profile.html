@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}个人中心 - 河农大闲置交易平台{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
+    <!-- 用户信息卡片 -->
+    <div class="card">
+        <div style="text-align: center; padding: 20px 0;">
+            <div style="width: 80px; height: 80px; background: #2E7D32; border-radius: 50%; 
+                        display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+                        font-size: 36px; color: white;">
+                {{ user.username[0] }}
+            </div>
+            <h3 style="margin-bottom: 8px;">{{ user.username }}</h3>
+            <span class="status-tag status-{{ user.auth_status }}">{{ user.auth_status }}</span>
+        </div>
+        
+        <div style="border-top: 1px solid #f0f0f0; padding-top: 16px; margin-top: 16px;">
+            <p style="color: #666; font-size: 14px; margin-bottom: 8px;">
+                <strong>学号：</strong>{{ user.student_id or '未填写' }}
+            </p>
+            <p style="color: #666; font-size: 14px; margin-bottom: 8px;">
+                <strong>学院：</strong>{{ user.college or '未填写' }}
+            </p>
+            <p style="color: #666; font-size: 14px; margin-bottom: 8px;">
+                <strong>手机：</strong>{{ user.phone or '未填写' }}
+            </p>
+            <p style="color: #666; font-size: 14px;">
+                <strong>邮箱：</strong>{{ user.email or '未填写' }}
+            </p>
+        </div>
+        
+        {% if user.auth_status != '已认证' %}
+        <a href="{{ url_for('student_auth') }}" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+            {% if user.auth_status == '待审核' %}
+                查看认证进度
+            {% else %}
+                完成学生认证
+            {% endif %}
+        </a>
+        {% endif %}
+        
+        <a href="{{ url_for('publish') }}" class="btn btn-success" style="width: 100%; margin-top: 10px;">
+            发布闲置
+        </a>
+        
+        <a href="{{ url_for('my_favorites') }}" class="btn btn-warning" style="width: 100%; margin-top: 10px;">
+            ❤️ 我的收藏
+        </a>
+        
+        <a href="{{ url_for('my_history') }}" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">
+            🕐 浏览历史
+        </a>
+        
+        {% if user.is_admin == 1 %}
+        <a href="{{ url_for('admin') }}" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">
+            ⚙️ 管理后台
+        </a>
+        {% endif %}
+    </div>
+    
+    <!-- 我的发布 -->
+    <div class="card">
+        <h3 style="margin-bottom: 16px;">📦 我的发布</h3>
+        
+        {% if my_items %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for item in my_items %}
+            <div style="display: flex; gap: 16px; padding: 12px; background: #fafafa; border-radius: 8px;">
+                {% if item.image_url %}
+                <img src="{{ item.image_url }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;"
+                     onerror="this.style.display='none'">
+                {% else %}
+                <div style="width: 80px; height: 80px; background: #f0f0f0; border-radius: 4px; 
+                            display: flex; align-items: center; justify-content: center; color: #999;">无图</div>
+                {% endif %}
+                
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h4 style="margin-bottom: 4px;">{{ item.title }}</h4>
+                            <p style="color: #F9A825; font-weight: bold;">¥{{ item.price }}</p>
+                        </div>
+                        <span class="status-tag {% if item.status == '在售' %}status-已认证{% else %}status-未认证{% endif %}">
+                            {{ item.status }}
+                        </span>
+                    </div>
+                    <p style="font-size: 12px; color: #999; margin-top: 4px;">{{ item.created_at[:10] }}</p>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">查看</a>
+                    {% if item.status == '在售' %}
+                    <form method="POST" action="{{ url_for('mark_sold', item_id=item.id) }}">
+                        <button type="submit" class="btn btn-success" style="font-size: 12px; padding: 6px 12px;">已售</button>
+                    </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('delete_item', item_id=item.id) }}" onsubmit="return confirm('确定删除？')">
+                        <button type="submit" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;">删除</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <p>还没有发布任何闲置</p>
+            {% if user.auth_status == '已认证' %}
+            <a href="{{ url_for('publish') }}" class="btn btn-primary" style="margin-top: 12px;">发布闲置</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 响应式 -->
+<style>
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: 300px"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} - 河农大闲置交易平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.comment-section {
+    margin-top: 30px;
+}
+.comment-item {
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #2E7D32;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+.comment-author {
+    font-weight: 600;
+    color: #333;
+}
+.comment-time {
+    font-size: 12px;
+    color: #999;
+    margin-left: auto;
+}
+.comment-content {
+    color: #444;
+    line-height: 1.6;
+    padding-left: 46px;
+}
+.comment-reply {
+    margin-left: 46px;
+    margin-top: 10px;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    border-left: 3px solid #2E7D32;
+}
+.reply-form {
+    margin-top: 10px;
+    padding-left: 46px;
+}
+.reply-input {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.reply-input textarea {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    resize: none;
+    min-height: 40px;
+}
+.reply-input textarea:focus {
+    outline: none;
+    border-color: #2E7D32;
+}
+.comment-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.comment-form textarea {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    resize: none;
+    min-height: 80px;
+    font-size: 14px;
+}
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #2E7D32;
+}
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.action-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.favorite-action {
+    background: {% if is_favorited %}#ff4d4f{% else %}#E8F5E9{% endif %};
+    color: {% if is_favorited %}white{% else %}#2E7D32{% endif %};
+    border: 2px solid {% if is_favorited %}#ff4d4f{% else %}#2E7D32{% endif %};
+}
+.favorite-action:hover {
+    transform: scale(1.05);
+}
+.condition-display {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+.condition-全新 { background: #E8F5E9; color: #2E7D32; }
+.condition-99新 { background: #F3F8E1; color: #7CB342; }
+.condition-95新 { background: #FFF8E1; color: #F9A825; }
+.condition-9成新 { background: #FFF3E0; color: #E65100; }
+.condition-8成新 { background: #FCE4EC; color: #C2185B; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+        <!-- 图片区域 -->
+        <div>
+            {% if item.image_url %}
+            <img src="{{ item.image_url }}" alt="{{ item.title }}" 
+                 style="width: 100%; border-radius: 12px;"
+                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22>图片加载失败</text></svg>'">
+            {% else %}
+            <div style="width: 100%; height: 400px; background: #f5f5f5; border-radius: 12px; 
+                        display: flex; align-items: center; justify-content: center; color: #999; font-size: 18px;">
+                📷 暂无图片
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- 信息区域 -->
+        <div>
+            <h1 style="font-size: 26px; margin-bottom: 16px; color: #333;">{{ item.title }}</h1>
+            
+            <div style="font-size: 36px; color: #F9A825; font-weight: bold; margin-bottom: 16px;">
+                ¥{{ item.price }}
+            </div>
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                <span class="status-tag status-已认证">📱 {{ item.category }}</span>
+                {% if item.condition %}
+                <span class="condition-display condition-{{ item.condition }}">{{ item.condition }}</span>
+                {% endif %}
+                <span class="status-tag {% if item.status == '在售' %}status-已认证{% else %}status-未认证{% endif %}">
+                    {{ item.status }}
+                </span>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn favorite-action" onclick="toggleFavorite()">
+                    {{ '❤️ 已收藏' if is_favorited else '🤍 收藏' }}
+                </button>
+                <a href="tel:{{ item.contact or item.phone }}" class="action-btn" style="background: #2E7D32; color: white; text-decoration: none;">
+                    📞 联系卖家
+                </a>
+            </div>
+            
+            <div style="background: #E8F5E9; padding: 16px; border-radius: 10px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 12px; color: #2E7D32;">🏫 卖家信息</h4>
+                <p style="margin-bottom: 8px;"><strong>用户名：</strong>{{ item.username }}</p>
+                <p style="margin-bottom: 8px;"><strong>学院：</strong>{{ item.college or '未填写' }}</p>
+                {% if item.contact %}
+                <p style="margin-bottom: 8px;"><strong>联系方式：</strong>{{ item.contact }}</p>
+                {% endif %}
+                {% if item.phone %}
+                <p style="margin-bottom: 8px;"><strong>手机：</strong>{{ item.phone }}</p>
+                {% endif %}
+                {% if item.email %}
+                <p><strong>邮箱：</strong>{{ item.email }}</p>
+                {% endif %}
+            </div>
+            
+            <div style="color: #999; font-size: 14px;">
+                🕐 发布时间：{{ item.created_at[:19] }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 物品描述 -->
+<div class="card">
+    <h3 style="margin-bottom: 16px; color: #2E7D32;">📝 物品描述</h3>
+    <p style="white-space: pre-wrap; line-height: 1.8; color: #333;">
+        {{ item.description or '暂无描述' }}
+    </p>
+</div>
+
+<!-- 留言区域 -->
+<div class="card comment-section">
+    <h3 style="margin-bottom: 20px; color: #2E7D32;">💬 留言询问 ({{ comments|length }})</h3>
+    
+    {% if session.user_id %}
+    <form class="comment-form" method="POST" action="{{ url_for('add_comment', item_id=item.id) }}">
+        <textarea name="content" placeholder="有问题想询问卖家？在这里留言..." required></textarea>
+        <button type="submit" class="btn btn-primary">发送留言</button>
+    </form>
+    {% else %}
+    <div style="background: #FFF8E1; padding: 16px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+        <p style="color: #F57C00;">登录后可以留言询问卖家</p>
+        <a href="{{ url_for('login') }}?next={{ request.path }}" class="btn btn-primary" style="margin-top: 10px;">登录</a>
+    </div>
+    {% endif %}
+    
+    <!-- 留言列表 -->
+    {% if comments %}
+        {% for comment in comments %}
+        <div class="comment-item">
+            <div class="comment-header">
+                <div class="comment-avatar">{{ comment.username[0] }}</div>
+                <span class="comment-author">{{ comment.username }}</span>
+                <span class="comment-time">{{ comment.created_at[:10] }}</span>
+            </div>
+            <div class="comment-content">{{ comment.content }}</div>
+            
+            <!-- 回复列表 -->
+            {% if comment_replies[comment.id] %}
+                {% for reply in comment_replies[comment.id] %}
+                <div class="comment-reply">
+                    <div class="comment-header">
+                        <div class="comment-avatar" style="background: #F9A825; width: 28px; height: 28px; font-size: 12px;">
+                            {{ reply.username[0] }}
+                        </div>
+                        <span class="comment-author">{{ reply.username }}</span>
+                        <span class="comment-time">{{ reply.created_at[:10] }}</span>
+                    </div>
+                    <div class="comment-content" style="padding-left: 36px;">{{ reply.content }}</div>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- 回复按钮 -->
+            {% if session.user_id %}
+            <div class="reply-form">
+                <form method="POST" action="{{ url_for('reply_comment', comment_id=comment.id) }}" class="reply-input">
+                    <textarea name="content" placeholder="回复 {{ comment.username }}..." rows="1"></textarea>
+                    <button type="submit" class="btn btn-secondary" style="padding: 8px 16px;">回复</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+    <div style="text-align: center; padding: 30px; color: #999;">
+        <p>暂无留言，成为第一个留言的人吧！</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 返回按钮 -->
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">← 返回首页</a>
+</div>
+
+<!-- 响应式 -->
+<style>
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+    .comment-form {
+        flex-direction: column;
+    }
+    .comment-form button {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 收藏功能
+function toggleFavorite() {
+    fetch(`/favorite/{{ item.id }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.code === 200) {
+            const btn = document.querySelector('.favorite-action');
+            if (data.favorited) {
+                btn.classList.add('active');
+                btn.innerHTML = '❤️ 已收藏';
+                btn.style.background = '#ff4d4f';
+                btn.style.color = 'white';
+                btn.style.borderColor = '#ff4d4f';
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '🤍 收藏';
+                btn.style.background = '#E8F5E9';
+                btn.style.color = '#2E7D32';
+                btn.style.borderColor = '#2E7D32';
+            }
+        } else if (data.code === 401) {
+            window.location.href = '/login';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('操作失败，请重试');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}我的收藏 - 河农大闲置交易平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+.item-card-wrapper {
+    position: relative;
+}
+.item-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.item-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(46, 125, 50, 0.15);
+}
+.item-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: #f0f0f0;
+}
+.item-card .info {
+    padding: 16px;
+}
+.item-card .title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.item-card .price {
+    font-size: 22px;
+    color: #F9A825;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.item-card .meta {
+    font-size: 12px;
+    color: #999;
+    margin-top: 8px;
+}
+.item-card .favorite-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #999;
+}
+.remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+.remove-btn:hover {
+    transform: scale(1.15);
+    background: #ff4d4f;
+    color: white;
+}
+.condition-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+.condition-全新 { background: #2E7D32; color: white; }
+.condition-99新 { background: #7CB342; color: white; }
+.condition-95新 { background: #F9A825; color: white; }
+.condition-9成新 { background: #FF9800; color: white; }
+.condition-8成新 { background: #E91E63; color: white; }
+@media (max-width: 768px) {
+    .items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #2E7D32;">❤️ 我的收藏</h2>
+        <span style="color: #999;">共 {{ favorites|length }} 件收藏</span>
+    </div>
+    
+    {% if favorites %}
+    <div class="items-grid">
+        {% for fav in favorites %}
+        <div class="item-card-wrapper">
+            <button class="remove-btn" onclick="removeFavorite({{ fav.item_id }})" title="取消收藏">
+                🗑️
+            </button>
+            {% if fav.condition %}
+            <span class="condition-badge condition-{{ fav.condition }}">{{ fav.condition }}</span>
+            {% endif %}
+            <a href="{{ url_for('item_detail', item_id=fav.item_id) }}" style="text-decoration: none;">
+                <div class="item-card">
+                    {% if fav.image_url %}
+                        <img src="{{ fav.image_url }}" alt="{{ fav.title }}" 
+                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22>暂无图片</text></svg>'">
+                    {% else %}
+                        <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22>暂无图片</text></svg>" alt="暂无图片">
+                    {% endif %}
+                    <div class="info">
+                        <div class="title">{{ fav.title }}</div>
+                        <div class="price">¥{{ fav.price }}</div>
+                        <div class="meta">
+                            <span>📍 {{ fav.category }}</span>
+                            <span>👤 {{ fav.username }}</span>
+                        </div>
+                        <div class="favorite-count" style="margin-top: 8px;">
+                            ❤️ {{ fav.favorite_count }}
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">💔</div>
+        <p style="color: #999; font-size: 16px;">还没有收藏任何物品</p>
+        <p style="color: #bbb; font-size: 14px; margin-top: 8px;">去首页逛逛，发现心仪的宝贝吧</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary" style="margin-top: 20px;">去逛逛</a>
+    </div>
+    {% endif %}
+</div>
+
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('profile') }}" class="btn btn-secondary">← 返回个人中心</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function removeFavorite(itemId) {
+    if (!confirm('确定要取消收藏吗？')) return;
+    
+    fetch(`/favorite/${itemId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.code === 200 && !data.favorited) {
+            // 移除卡片
+            const card = event.currentTarget.closest('.item-card-wrapper');
+            card.style.animation = 'fadeOut 0.3s';
+            setTimeout(() => {
+                card.remove();
+                // 检查是否还有收藏
+                if (document.querySelectorAll('.item-card-wrapper').length === 0) {
+                    location.reload();
+                }
+            }, 300);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('操作失败，请重试');
+    });
+}
+</script>
+<style>
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.8); }
+}
+</style>
+{% endblock %}
